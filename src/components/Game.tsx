@@ -7,7 +7,7 @@ const Game = () => {
   const [result1, setResult1] = useState<number>(0);
   const [result2, setResult2] = useState<number>(0);
   const [activePlayer, setActivePlayer] = useState<string>("one");
-  const [wordList, setWordList] = useState<string[]>([]);
+  const [wordList] = useState<string[]>([]);
   const [lastLetter, setLastLetter] = useState("");
   const firstInput = useRef(null);
   const secondInput = useRef(null);
