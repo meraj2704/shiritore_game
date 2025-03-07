@@ -13,52 +13,63 @@ const Game = () => {
   const secondInput = useRef(null);
   const [seeAll, setSeeAll] = useState(false);
 
-  const apiCall = async (value: string) => {
-    fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${value}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data[0].word) {
-          setValid(true);
-          return "true";
-        } else {
-          setValid(false);
-          return false;
-        }
-      });
+  const apiCall = async (value: string): Promise<boolean> => {
+    try {
+      const response = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${value}`
+      );
+      const data = await response.json();
+
+      if (data && data[0]?.word) {
+        setValid(true);
+        return true;
+      } else {
+        setValid(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("API error:", error);
+      setValid(false);
+      return false;
+    }
   };
+
   const handleEntry = async (player: string) => {
     if (value.length >= 4) {
-      const firstLetter = value.charAt(0);
-      const newWordLastLetter = value.slice(-1);
+      const firstLetter = value.toLowerCase().charAt(0);
+      const newWordLastLetter = value.toLowerCase().slice(-1);
       const existWord = wordList.includes(value);
-      console.log("exist", existWord);
-      await apiCall(value);
-      if ((!existWord && lastLetter === firstLetter) || lastLetter === "") {
+      const isValidWord = await apiCall(value);
+      console.log("valid", valid);
+      if (
+        isValidWord &&
+        ((!existWord && lastLetter === firstLetter) || lastLetter === "")
+      ) {
         wordList.push(value);
         if (player === "one") {
           setResult1(result1 + 1);
           setActivePlayer("two");
-          // secondInput.current.focus();
         } else {
           setResult2(result2 + 1);
           setActivePlayer("one");
-          // secondInput.current.focus();
         }
         setValue("");
         setLastLetter(newWordLastLetter);
       } else {
         if (existWord) {
           alert(
-            `The ${value} already exist. So ${
+            `The word "${value}" already exists. ${
               player === "one" ? "Player 1" : "Player 2"
-            } get minus point.`
+            } gets a minus point.`
           );
         } else if (lastLetter !== firstLetter) {
           alert(
-            `The ${value} first letter not matching with previous word last letter. So ${
+            `The first letter of "${value}" does not match the last letter of the previous word. ${
               player === "one" ? "Player 1" : "Player 2"
-            } get minus point.`
+            } gets a minus point.`
           );
+        } else {
+          alert(`"${value}" is not a valid English word.`);
         }
         if (player === "one") {
           setResult1(result1 - 1);
@@ -69,13 +80,11 @@ const Game = () => {
         }
         setValue("");
       }
-      if (valid) {
-      } else {
-      }
     } else {
-      alert("You have to enter at list 4 letter.");
+      alert("You must enter at least a 4-letter word.");
     }
   };
+
   return (
     <div className="flex flex-col justify-center items-center p-10">
       <h1 className="text-xl font-semibold">Shiritori Game</h1>
